@@ -17,9 +17,6 @@ var url = require('url') ;
 var client_id = process.env.CLIENT_ID; // Your client id
 var client_secret = process.env.CLIENT_SECRET; // Your secret
 
-var hostname = req.headers.host;
-var redirect_uri = 'http://' + hostname + '/callback/'; // Your redirect uri
-
 var AUTH_TOKEN;
 
 /**
@@ -60,6 +57,9 @@ app.get('/artists', function(req, res) {
 
 app.get('/login', function(req, res) {
 
+  var hostname = req.headers.host;
+  var redirect_uri = 'http://' + hostname + '/callback/'; // Your redirect uri
+
   var state = generateRandomString(16);
   res.cookie(stateKey, state);
 
@@ -79,6 +79,9 @@ app.get('/callback', function(req, res) {
 
   // your application requests refresh and access tokens
   // after checking the state parameter
+
+  var hostname = req.headers.host;
+  var redirect_uri = 'http://' + hostname + '/callback/'; // Your redirect uri
 
   var code = req.query.code || null;
   var state = req.query.state || null;
