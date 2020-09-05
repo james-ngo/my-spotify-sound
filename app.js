@@ -60,6 +60,7 @@ app.get('/login', function(req, res) {
   var hostname = req.headers.host;
   var redirect_uri = 'http://' + hostname + '/callback/'; // Your redirect uri
 
+  console.log(redirect_uri);
   var state = generateRandomString(16);
   res.cookie(stateKey, state);
 
@@ -83,6 +84,7 @@ app.get('/callback', function(req, res) {
   var hostname = req.headers.host;
   var redirect_uri = 'http://' + hostname + '/callback/'; // Your redirect uri
 
+  console.log(redirect_uri);
   var code = req.query.code || null;
   var state = req.query.state || null;
   var storedState = req.cookies ? req.cookies[stateKey] : null;
