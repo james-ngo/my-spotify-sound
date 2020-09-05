@@ -58,7 +58,7 @@ app.get('/artists', function(req, res) {
 app.get('/login', function(req, res) {
 
   var hostname = req.headers.host;
-  var redirect_uri = 'http://' + hostname + '/callback/'; // Your redirect uri
+  var redirect_uri = 'https://' + hostname + '/callback/'; // Your redirect uri
 
   console.log(redirect_uri);
   var state = generateRandomString(16);
@@ -82,7 +82,7 @@ app.get('/callback', function(req, res) {
   // after checking the state parameter
 
   var hostname = req.headers.host;
-  var redirect_uri = 'http://' + hostname + '/callback/'; // Your redirect uri
+  var redirect_uri = 'https://' + hostname + '/callback/'; // Your redirect uri
 
   console.log(redirect_uri);
   var code = req.query.code || null;
