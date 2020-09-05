@@ -15,7 +15,9 @@ var cookieParser = require('cookie-parser');
 
 var client_id = process.env.CLIENT_ID; // Your client id
 var client_secret = process.env.CLIENT_SECRET; // Your secret
-var redirect_uri = 'http://127.0.0.1:8888/callback/'; // Your redirect uri
+var redirect_uri = 'http://127.0.0.1:3000/callback/'; // Your redirect uri
+
+var AUTH_TOKEN;
 
 /**
  * Generates a random string containing numbers and letters
@@ -36,9 +38,22 @@ var stateKey = 'spotify_auth_state';
 
 var app = express();
 
-app.use(express.static(__dirname + '/public'))
-   .use(cors())
+app.engine('html', require('ejs').renderFile);
+
+app.use(cors())
    .use(cookieParser());
+
+app.get('/', function(req, res) {
+  res.render(__dirname + '/views/index.html', { token: AUTH_TOKEN, error: false });
+})
+
+app.get('/artists', function(req, res) {
+  if (AUTH_TOKEN) {
+    res.render(__dirname + '/views/top_artists.html', { token: AUTH_TOKEN })
+  } else {
+    res.redirect('/login');
+  }
+});
 
 app.get('/login', function(req, res) {
 
@@ -46,7 +61,7 @@ app.get('/login', function(req, res) {
   res.cookie(stateKey, state);
 
   // your application requests authorization
-  var scope = 'user-read-private user-read-email';
+  var scope = 'user-top-read';
   res.redirect('https://accounts.spotify.com/authorize?' +
     querystring.stringify({
       response_type: 'code',
@@ -67,10 +82,7 @@ app.get('/callback', function(req, res) {
   var storedState = req.cookies ? req.cookies[stateKey] : null;
 
   if (state === null || state !== storedState) {
-    res.redirect('/#' +
-      querystring.stringify({
-        error: 'state_mismatch'
-      }));
+    res.render(__dirname + '/views/index.html', { token: AUTH_TOKEN, error: "state_mismatch" })
   } else {
     res.clearCookie(stateKey);
     var authOptions = {
@@ -91,29 +103,20 @@ app.get('/callback', function(req, res) {
 
         var access_token = body.access_token,
             refresh_token = body.refresh_token;
-
-        var options = {
-          url: 'https://api.spotify.com/v1/me',
-          headers: { 'Authorization': 'Bearer ' + access_token },
-          json: true
-        };
-
-        // use the access token to access the Spotify Web API
-        request.get(options, function(error, response, body) {
-          console.log(body);
-        });
+        AUTH_TOKEN = access_token;
 
         // we can also pass the token to the browser to make requests from there
-        res.redirect('/#' +
-          querystring.stringify({
-            access_token: access_token,
-            refresh_token: refresh_token
-          }));
-      } else {
-        res.redirect('/#' +
-          querystring.stringify({
-            error: 'invalid_token'
-          }));
+        // res.redirect('/#' +
+        //   querystring.stringify({
+        //     access_token: access_token,
+        //     refresh_token: refresh_token
+        //   }));
+        res.redirect('/')
+      // } else {
+        // res.redirect('/#' +
+        //   querystring.stringify({
+        //     error: 'invalid_token'
+        //   }));
       }
     });
   }
@@ -143,5 +146,6 @@ app.get('/refresh_token', function(req, res) {
   });
 });
 
-console.log('Listening on 8888');
-app.listen(8888);
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT);

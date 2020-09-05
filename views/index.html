@@ -1,0 +1,97 @@
+<!doctype html>
+<html>
+  <head>
+    <title>MySpotifySound</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style type="text/css">
+      #login, #loggedin {
+        display: none;
+      }
+      .text-overflow {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        width: 500px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <%- include('partials/navbar') %>
+    <div class="container">
+      <br>
+      <br>
+      <div id="home-banner">
+      </div>
+      <br>
+      <div id="login">
+        <center>
+          <a href="/login" class="btn btn-primary">Log in with Spotify</a>
+        </center>
+      </div>
+      <div id="loggedin">
+        <center>
+          <a href="/artists" class="btn btn-primary">Top Artists</a>
+          <a href="/genres" class="btn btn-primary" style="margin-left:2.5em">Top Genres</a>
+        </center>
+      </div>
+    </div>
+
+    <script id="home-banner-template" type="text/x-handlebars-template">
+      <center>
+        <div class="container" style="background-color:#E8E8E8;">
+          <br>
+          <h1 style="font-family:verdana">MySpotifySound</h1>
+          <br>
+          <p>View your top artists and genres and the discover new artists based on them.</p>
+          <br>
+        </div>
+      </center>
+      <br>
+    </script>
+
+    <script id="top-artists-template" type="text/x-handlebars-template">
+      <br>
+      <div class="container" style="border:1px solid #cecece;background-color:#E8E8E8;padding-top:1em;padding-bottom:1em;">
+        <div class="media">
+          <img class="media" width="150" src="{{images.0.url}}"/>
+          <div class="media-body">
+            <h2 style="margin-left:1em;display:inline-block">{{rank}}.&nbsp;</h2>
+            <a href="https://open.spotify.com/artist/{{id}}" target="_blank">
+              <h2 class="text-overflow" style="display:inline-block;color:black;">{{name}}</h2>
+            </a>
+            <p style="margin-left:2em">Genres: {{genres}}</p>
+          </div>
+        </div>
+      </div>
+      <br>
+    </script>
+
+    <script src="//cdnjs.cloudflare.com/ajax/libs/handlebars.js/2.0.0-alpha.1/handlebars.min.js"></script>
+    <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+
+    <script>
+      (function() {
+
+        var access_token = "<%- token %>"
+        var error = <%- error %>
+
+        console.log(access_token);
+        console.log(error);
+        if (error) {
+          alert('There was an error during the authentication');
+        } else {
+          document.getElementById("home-banner").innerHTML = document.getElementById("home-banner-template").innerHTML;
+          if (access_token.length > 0) {
+              $('#login').hide();
+              $('#loggedin').show();
+          } else {
+              // render initial screen
+              $('#login').show();
+              $('#loggedin').hide();
+          }
+        }
+      })();
+    </script>
+  </body>
+</html>
