@@ -12,10 +12,13 @@ var request = require('request'); // "Request" library
 var cors = require('cors');
 var querystring = require('querystring');
 var cookieParser = require('cookie-parser');
+var url = require('url') ;
 
 var client_id = process.env.CLIENT_ID; // Your client id
 var client_secret = process.env.CLIENT_SECRET; // Your secret
-var redirect_uri = 'http://127.0.0.1:3000/callback/'; // Your redirect uri
+
+var hostname = req.headers.host;
+var redirect_uri = 'http://' + hostname + '/callback/'; // Your redirect uri
 
 var AUTH_TOKEN;
 
