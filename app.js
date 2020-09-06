@@ -18,6 +18,7 @@ var client_id = process.env.CLIENT_ID; // Your client id
 var client_secret = process.env.CLIENT_SECRET; // Your secret
 
 var AUTH_TOKEN;
+var REFRESH_TOKEN;
 
 /**
  * Generates a random string containing numbers and letters
@@ -55,10 +56,18 @@ app.get('/artists', function(req, res) {
   }
 });
 
+app.get('/genres', function(req, res) {
+  if (AUTH_TOKEN) {
+    res.render(__dirname + '/views/top_genres.html', { token: AUTH_TOKEN });
+  } else {
+    res.redirect('/login');
+  }
+})
+
 app.get('/login', function(req, res) {
 
   var hostname = req.headers.host;
-  var redirect_uri = 'https://' + hostname + '/callback/'; // Your redirect uri
+  var redirect_uri = 'http://' + hostname + '/callback/'; // Your redirect uri
 
   console.log(redirect_uri);
   var state = generateRandomString(16);
@@ -82,7 +91,7 @@ app.get('/callback', function(req, res) {
   // after checking the state parameter
 
   var hostname = req.headers.host;
-  var redirect_uri = 'https://' + hostname + '/callback/'; // Your redirect uri
+  var redirect_uri = 'http://' + hostname + '/callback/'; // Your redirect uri
 
   console.log(redirect_uri);
   var code = req.query.code || null;
@@ -112,7 +121,7 @@ app.get('/callback', function(req, res) {
         var access_token = body.access_token,
             refresh_token = body.refresh_token;
         AUTH_TOKEN = access_token;
-
+        REFRESH_TOKEN = refresh_token;
         // we can also pass the token to the browser to make requests from there
         // res.redirect('/#' +
         //   querystring.stringify({

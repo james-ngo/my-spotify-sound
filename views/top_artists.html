@@ -13,6 +13,12 @@
         white-space: nowrap;
         width: 500px;
       }
+      .artist-image {
+        display:inline-block;
+        width:150px;
+        height:150px;
+        object-fit:cover;
+      }
     </style>
   </head>
   <body>
@@ -30,7 +36,7 @@
       <br>
       <div class="container" style="border:1px solid #cecece;background-color:#E8E8E8;padding-top:1em;padding-bottom:1em;">
         <div class="media">
-          <img class="media" width="150" src="{{images.0.url}}"/>
+          <img class="media artist-image" src="{{images.0.url}}"/>
           <div class="media-body">
             <h2 style="margin-left:1em;display:inline-block">{{rank}}.&nbsp;</h2>
             <a href="https://open.spotify.com/artist/{{id}}" target="_blank">
