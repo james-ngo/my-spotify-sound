@@ -82,7 +82,7 @@ app.get('/tracks', function(req, res) {
 app.get('/login', function(req, res) {
 
   var hostname = req.headers.host;
-  var redirect_uri = 'http://' + hostname + '/callback/'; // Your redirect uri
+  var redirect_uri = 'https://' + hostname + '/callback/'; // Your redirect uri
 
   var state = generateRandomString(16);
   res.cookie(stateKey, state);
@@ -105,7 +105,7 @@ app.get('/callback', function(req, res) {
   // after checking the state parameter
 
   var hostname = req.headers.host;
-  var redirect_uri = 'http://' + hostname + '/callback/'; // Your redirect uri
+  var redirect_uri = 'https://' + hostname + '/callback/'; // Your redirect uri
 
   var code = req.query.code || null;
   var state = req.query.state || null;
