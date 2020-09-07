@@ -13,6 +13,14 @@ var cors = require('cors');
 var querystring = require('querystring');
 var cookieParser = require('cookie-parser');
 var url = require('url') ;
+const { Client } = require('pg');
+
+const client = new Client({
+  connectionString: process.env.DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: false
+  }
+});
 
 var client_id = process.env.CLIENT_ID; // Your client id
 var client_secret = process.env.CLIENT_SECRET; // Your secret
@@ -45,14 +53,22 @@ app.use(cors())
    .use(cookieParser());
 
 app.get('/', function(req, res) {
-  res.render(__dirname + '/views/index.html', { token: AUTH_TOKEN, error: false });
+  var access_token;
+  client.query("SELECT auth_token FROM auth_tokens WHERE csrf_token = " + req.cookies.csrftoken, (err, res) => {
+    if (err) throw err;
+    access_token = res.rows[0];
+  });
+  res.render(__dirname + '/views/index.html', { token: access_token, error: false });
 })
 
 app.get('/artists', function(req, res) {
-  if (AUTH_TOKEN) {
-    console.log(req.query);
-    res.render(__dirname + '/views/top_artists.html', { token: AUTH_TOKEN,
-                                                        refresh_token: REFRESH_TOKEN,
+  var access_token;
+  client.query("SELECT auth_token FROM auth_tokens WHERE csrf_token = " + req.cookies.csrftoken, (err, res) => {
+    if (err) throw err;
+    access_token = res.rows[0];
+  });
+  if (access_token) {
+    res.render(__dirname + '/views/top_artists.html', { token: access_token,
                                                         time_range: req.query.time_range })
   } else {
     res.redirect('/login');
@@ -60,9 +76,13 @@ app.get('/artists', function(req, res) {
 });
 
 app.get('/genres', function(req, res) {
-  if (AUTH_TOKEN) {
-    res.render(__dirname + '/views/top_genres.html', { token: AUTH_TOKEN,
-                                                       refresh_token: REFRESH_TOKEN,
+  var access_token;
+  client.query("SELECT auth_token FROM auth_tokens WHERE csrf_token = " + req.cookies.csrftoken, (err, res) => {
+    if (err) throw err;
+    access_token = res.rows[0];
+  });
+  if (access_token) {
+    res.render(__dirname + '/views/top_genres.html', { token: access_token,
                                                        time_range: req.query.time_range });
   } else {
     res.redirect('/login');
@@ -70,9 +90,13 @@ app.get('/genres', function(req, res) {
 })
 
 app.get('/tracks', function(req, res) {
-  if (AUTH_TOKEN) {
-    res.render(__dirname + '/views/top_tracks.html', { token: AUTH_TOKEN,
-                                                       refresh_token: REFRESH_TOKEN,
+  var access_token;
+  client.query("SELECT auth_token FROM auth_tokens WHERE csrf_token = " + req.cookies.csrftoken, (err, res) => {
+    if (err) throw err;
+    access_token = res.rows[0];
+  });
+  if (access_token) {
+    res.render(__dirname + '/views/top_tracks.html', { token: access_token,
                                                        time_range: req.query.time_range });
   } else {
     res.redirect('/login');
@@ -82,7 +106,7 @@ app.get('/tracks', function(req, res) {
 app.get('/login', function(req, res) {
 
   var hostname = req.headers.host;
-  var redirect_uri = 'https://' + hostname + '/callback/'; // Your redirect uri
+  var redirect_uri = 'http://' + hostname + '/callback/'; // Your redirect uri
 
   var state = generateRandomString(16);
   res.cookie(stateKey, state);
@@ -105,14 +129,13 @@ app.get('/callback', function(req, res) {
   // after checking the state parameter
 
   var hostname = req.headers.host;
-  var redirect_uri = 'https://' + hostname + '/callback/'; // Your redirect uri
+  var redirect_uri = 'http://' + hostname + '/callback/'; // Your redirect uri
 
   var code = req.query.code || null;
   var state = req.query.state || null;
   var storedState = req.cookies ? req.cookies[stateKey] : null;
-
   if (state === null || state !== storedState) {
-    res.render(__dirname + '/views/index.html', { token: AUTH_TOKEN, error: "state_mismatch" })
+    res.render(__dirname + '/views/index.html', { token: "", error: "state_mismatch" })
   } else {
     res.clearCookie(stateKey);
     var authOptions = {
@@ -133,8 +156,10 @@ app.get('/callback', function(req, res) {
 
         var access_token = body.access_token,
             refresh_token = body.refresh_token;
-        AUTH_TOKEN = access_token;
-        REFRESH_TOKEN = refresh_token;
+        client.query("INSERT INTO auth_tokens(" + req.cookies.csrftoken + "," + access_token + ");", (err, res) => {
+          if (err) throw err;
+        });
+        // REFRESH_TOKEN = refresh_token;
         res.redirect('/');
       }
     });
