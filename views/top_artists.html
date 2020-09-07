@@ -4,15 +4,6 @@
     <title>MySpotifySound</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <style type="text/css">
-      #login, #loggedin {
-        display: none;
-      }
-      .text-overflow {
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-        width: 500px;
-      }
       .artist-image {
         display:inline-block;
         width:150px;
@@ -23,20 +14,39 @@
   </head>
   <body>
     <%- include('partials/navbar') %>
-    <center>
     <br>
-      <h2>Your Top Artists</h2>
+    <br>
+    <br>
+    <center>
+      <br>
+      <div id="top-artists-header">
+      </div>
+      <br>
+      <a href="/artists?time_range=short_term">
+        <h6 style="display:inline-block;">Last 4 Weeks</h6>
+      </a>
+      <a href="/artists?time_range=medium_term">
+        <h6 style="display:inline-block;margin-left:10em;">Last 6 Months</h6>
+      </a>
+      <a href="/artists?time_range=long_term">
+        <h6 style="display:inline-block;margin-left:10em;">All Time</h6>
+      </a>
     </center>
 
     <div id="top-artists">
     </div>
 
+    <script id="top-artists-header-template" type="text/x-handlebars-template">
+      <h2>Your Top Artists ({{time_range}})</h2>
+    </script>
 
     <script id="top-artists-template" type="text/x-handlebars-template">
       <br>
       <div class="container" style="border:1px solid #cecece;background-color:#E8E8E8;padding-top:1em;padding-bottom:1em;">
         <div class="media">
-          <img class="media artist-image" src="{{images.0.url}}"/>
+          <a href="https://open.spotify.com/artist/{{id}}" target="_blank">
+            <img class="media artist-image" src="{{images.0.url}}"/>
+          </a>
           <div class="media-body">
             <h2 style="margin-left:1em;display:inline-block">{{rank}}.&nbsp;</h2>
             <a href="https://open.spotify.com/artist/{{id}}" target="_blank">
@@ -53,23 +63,44 @@
     <script src="https://code.jquery.com/jquery-1.10.1.min.js"></script>
     <script>
       (function() {
+        var topArtistsHeaderSource = document.getElementById('top-artists-header-template').innerHTML,
+            topArtistsHeaderTemplate = Handlebars.compile(topArtistsHeaderSource),
+            topArtistsHeaderPlaceholder = document.getElementById('top-artists-header');
+
         var topArtistsSource = document.getElementById('top-artists-template').innerHTML,
             topArtistsTemplate = Handlebars.compile(topArtistsSource),
             topArtistsPlaceholder = document.getElementById('top-artists');
+
+        var time_range = "<%- time_range %>";
+
+        if (time_range === "short_term") {
+          topArtistsHeaderPlaceholder.innerHTML = topArtistsHeaderTemplate({ time_range: "Last 4 Weeks" });
+        } else if (time_range === "medium_term") {
+          topArtistsHeaderPlaceholder.innerHTML = topArtistsHeaderTemplate({ time_range: "Last 6 Months" });
+        } else {
+          time_range = "long_term"
+          topArtistsHeaderPlaceholder.innerHTML = topArtistsHeaderTemplate({ time_range: "All Time" });
+        }
+
         $.ajax({
-            url: 'https://api.spotify.com/v1/me/top/artists?time_range=long_term&limit=50',
-            headers: {
-              'Authorization': 'Bearer ' + "<%- token %>"
-            },
-            success: function(response) {
-              var html = "";
-              for (var i = 0; i < response.items.length; i++) {
-                response.items[i].rank = i + 1;
-                response.items[i].genres = response.items[i].genres.join(", ")
-                html += topArtistsTemplate(response.items[i]);
-              }
-              topArtistsPlaceholder.innerHTML = html;
+          url: 'https://api.spotify.com/v1/me/top/artists?time_range=' + time_range + '&limit=50',
+          headers: {
+            'Authorization': 'Bearer ' + "<%- token %>"
+          },
+          success: function(response) {
+            var html = "";
+            for (var i = 0; i < response.items.length; i++) {
+              response.items[i].rank = i + 1;
+              response.items[i].genres = response.items[i].genres.join(", ")
+              html += topArtistsTemplate(response.items[i]);
             }
+            topArtistsPlaceholder.innerHTML = html;
+          },
+          error: function(response, textStatus) {
+            if (response.status === 401) {
+              window.location.replace("/login");
+            }
+          }
         });
       })();
     </script>

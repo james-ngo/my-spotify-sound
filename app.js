@@ -50,7 +50,10 @@ app.get('/', function(req, res) {
 
 app.get('/artists', function(req, res) {
   if (AUTH_TOKEN) {
-    res.render(__dirname + '/views/top_artists.html', { token: AUTH_TOKEN })
+    console.log(req.query);
+    res.render(__dirname + '/views/top_artists.html', { token: AUTH_TOKEN,
+                                                        refresh_token: REFRESH_TOKEN,
+                                                        time_range: req.query.time_range })
   } else {
     res.redirect('/login');
   }
@@ -58,7 +61,19 @@ app.get('/artists', function(req, res) {
 
 app.get('/genres', function(req, res) {
   if (AUTH_TOKEN) {
-    res.render(__dirname + '/views/top_genres.html', { token: AUTH_TOKEN });
+    res.render(__dirname + '/views/top_genres.html', { token: AUTH_TOKEN,
+                                                       refresh_token: REFRESH_TOKEN,
+                                                       time_range: req.query.time_range });
+  } else {
+    res.redirect('/login');
+  }
+})
+
+app.get('/tracks', function(req, res) {
+  if (AUTH_TOKEN) {
+    res.render(__dirname + '/views/top_tracks.html', { token: AUTH_TOKEN,
+                                                       refresh_token: REFRESH_TOKEN,
+                                                       time_range: req.query.time_range });
   } else {
     res.redirect('/login');
   }
@@ -67,9 +82,8 @@ app.get('/genres', function(req, res) {
 app.get('/login', function(req, res) {
 
   var hostname = req.headers.host;
-  var redirect_uri = 'https://' + hostname + '/callback/'; // Your redirect uri
+  var redirect_uri = 'http://' + hostname + '/callback/'; // Your redirect uri
 
-  console.log(redirect_uri);
   var state = generateRandomString(16);
   res.cookie(stateKey, state);
 
@@ -91,9 +105,8 @@ app.get('/callback', function(req, res) {
   // after checking the state parameter
 
   var hostname = req.headers.host;
-  var redirect_uri = 'https://' + hostname + '/callback/'; // Your redirect uri
+  var redirect_uri = 'http://' + hostname + '/callback/'; // Your redirect uri
 
-  console.log(redirect_uri);
   var code = req.query.code || null;
   var state = req.query.state || null;
   var storedState = req.cookies ? req.cookies[stateKey] : null;
@@ -122,18 +135,7 @@ app.get('/callback', function(req, res) {
             refresh_token = body.refresh_token;
         AUTH_TOKEN = access_token;
         REFRESH_TOKEN = refresh_token;
-        // we can also pass the token to the browser to make requests from there
-        // res.redirect('/#' +
-        //   querystring.stringify({
-        //     access_token: access_token,
-        //     refresh_token: refresh_token
-        //   }));
-        res.redirect('/')
-      // } else {
-        // res.redirect('/#' +
-        //   querystring.stringify({
-        //     error: 'invalid_token'
-        //   }));
+        res.redirect('/');
       }
     });
   }
@@ -143,6 +145,7 @@ app.get('/refresh_token', function(req, res) {
 
   // requesting access token from refresh token
   var refresh_token = req.query.refresh_token;
+  REFRESH_TOKEN = refresh_token;
   var authOptions = {
     url: 'https://accounts.spotify.com/api/token',
     headers: { 'Authorization': 'Basic ' + (new Buffer(client_id + ':' + client_secret).toString('base64')) },
@@ -155,7 +158,7 @@ app.get('/refresh_token', function(req, res) {
 
   request.post(authOptions, function(error, response, body) {
     if (!error && response.statusCode === 200) {
-      var access_token = body.access_token;
+      ACCESS_TOKEN = body.access_token;
       res.send({
         'access_token': access_token
       });
