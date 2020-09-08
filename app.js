@@ -13,14 +13,6 @@ var cors = require('cors');
 var querystring = require('querystring');
 var cookieParser = require('cookie-parser');
 var url = require('url') ;
-const { Client } = require('pg');
-
-const client = new Client({
-  connectionString: process.env.DATABASE_URL,
-  ssl: {
-    rejectUnauthorized: false
-  }
-});
 
 var client_id = process.env.CLIENT_ID; // Your client id
 var client_secret = process.env.CLIENT_SECRET; // Your secret
@@ -53,22 +45,14 @@ app.use(cors())
    .use(cookieParser());
 
 app.get('/', function(req, res) {
-  var access_token;
-  client.query("SELECT auth_token FROM auth_tokens WHERE csrf_token = " + req.cookies.csrftoken, (err, res) => {
-    if (err) throw err;
-    access_token = res.rows[0];
-  });
-  res.render(__dirname + '/views/index.html', { token: access_token, error: false });
-})
+  res.render(__dirname + '/views/index.html',
+    { token: req.cookies.auth,
+      error: false });
+});
 
 app.get('/artists', function(req, res) {
-  var access_token;
-  client.query("SELECT auth_token FROM auth_tokens WHERE csrf_token = " + req.cookies.csrftoken, (err, res) => {
-    if (err) throw err;
-    access_token = res.rows[0];
-  });
-  if (access_token) {
-    res.render(__dirname + '/views/top_artists.html', { token: access_token,
+  if (req.cookies.auth) {
+    res.render(__dirname + '/views/top_artists.html', { token: req.cookies.auth,
                                                         time_range: req.query.time_range })
   } else {
     res.redirect('/login');
@@ -76,32 +60,22 @@ app.get('/artists', function(req, res) {
 });
 
 app.get('/genres', function(req, res) {
-  var access_token;
-  client.query("SELECT auth_token FROM auth_tokens WHERE csrf_token = " + req.cookies.csrftoken, (err, res) => {
-    if (err) throw err;
-    access_token = res.rows[0];
-  });
-  if (access_token) {
-    res.render(__dirname + '/views/top_genres.html', { token: access_token,
+  if (req.cookies.auth) {
+    res.render(__dirname + '/views/top_genres.html', { token: req.cookies.auth,
                                                        time_range: req.query.time_range });
   } else {
     res.redirect('/login');
   }
-})
+});
 
 app.get('/tracks', function(req, res) {
-  var access_token;
-  client.query("SELECT auth_token FROM auth_tokens WHERE csrf_token = " + req.cookies.csrftoken, (err, res) => {
-    if (err) throw err;
-    access_token = res.rows[0];
-  });
-  if (access_token) {
-    res.render(__dirname + '/views/top_tracks.html', { token: access_token,
+  if (req.cookies.auth) {
+    res.render(__dirname + '/views/top_tracks.html', { token: req.cookies.auth,
                                                        time_range: req.query.time_range });
   } else {
     res.redirect('/login');
   }
-})
+});
 
 app.get('/login', function(req, res) {
 
@@ -156,10 +130,8 @@ app.get('/callback', function(req, res) {
 
         var access_token = body.access_token,
             refresh_token = body.refresh_token;
-        client.query("INSERT INTO auth_tokens(" + req.cookies.csrftoken + "," + access_token + ");", (err, res) => {
-          if (err) throw err;
-        });
-        // REFRESH_TOKEN = refresh_token;
+
+        res.cookie("auth", access_token);
         res.redirect('/');
       }
     });
