@@ -60,8 +60,8 @@
               <h2 class="truncate" style="display:inline-block;color:black;">{{name}}&nbsp;</h2>
             </a>
             <h2 style="display:inline-block;">by&nbsp;</h2>
-            <a href="https://open.spotify.com/artist/{{artists.0.id}}" style="display:inline-block;color:black;" target="_blank">
-              <h2>{{artists.0.name}}</h2>
+            <a href="https://open.spotify.com/artist/{{artists.0.id}}" target="_blank">
+              <h2 class="truncate" style="display:inline-block;color:black;" >{{artists.0.name}}</h2>
             </a>
           </div>
         </div>
@@ -107,7 +107,16 @@
             },
             error: function(response, textStatus) {
               if (response.status === 401) {
-                window.location.replace("/login");
+                $.ajax({
+                  url: '/refresh_token',
+                  data: {
+                    'refresh_token': refresh_token
+                  }
+                }).done(function(data) {
+                  access_token = data.access_token;
+                  document.cookie = "auth=" + access_token;
+                  location.reload();
+                });
               }
             }
         });

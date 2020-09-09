@@ -98,7 +98,16 @@
           },
           error: function(response, textStatus) {
             if (response.status === 401) {
-              window.location.replace("/login");
+              $.ajax({
+                url: '/refresh_token',
+                data: {
+                  'refresh_token': refresh_token
+                }
+              }).done(function(data) {
+                access_token = data.access_token;
+                document.cookie = "auth=" + access_token;
+                location.reload();
+              });
             }
           }
         });

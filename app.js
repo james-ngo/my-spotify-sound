@@ -17,9 +17,6 @@ var url = require('url') ;
 var client_id = process.env.CLIENT_ID; // Your client id
 var client_secret = process.env.CLIENT_SECRET; // Your secret
 
-var AUTH_TOKEN;
-var REFRESH_TOKEN;
-
 /**
  * Generates a random string containing numbers and letters
  * @param  {number} length The length of the string
@@ -93,9 +90,15 @@ app.get('/login', function(req, res) {
       client_id: client_id,
       scope: scope,
       redirect_uri: redirect_uri,
-      state: state
+      state: state,
+      show_dialog: true
     }));
 });
+
+app.get('/logout', function(req, res) {
+  res.clearCookie('auth');
+  res.redirect('/');
+})
 
 app.get('/callback', function(req, res) {
 
@@ -132,17 +135,16 @@ app.get('/callback', function(req, res) {
             refresh_token = body.refresh_token;
 
         res.cookie("auth", access_token);
+        res.cookie("refresh_token", refresh_token);
         res.redirect('/');
       }
     });
   }
 });
 
-app.get('/refresh_token', function(req, res) {
-
+function refreshToken(req, res) {
   // requesting access token from refresh token
-  var refresh_token = req.query.refresh_token;
-  REFRESH_TOKEN = refresh_token;
+  var refresh_token = req.cookies.refresh_token;
   var authOptions = {
     url: 'https://accounts.spotify.com/api/token',
     headers: { 'Authorization': 'Basic ' + (new Buffer(client_id + ':' + client_secret).toString('base64')) },
@@ -155,13 +157,11 @@ app.get('/refresh_token', function(req, res) {
 
   request.post(authOptions, function(error, response, body) {
     if (!error && response.statusCode === 200) {
-      ACCESS_TOKEN = body.access_token;
-      res.send({
-        'access_token': access_token
-      });
+      access_token = body.access_token;
+      res.cookies("auth", access_token);
     }
   });
-});
+}
 
 const PORT = process.env.PORT || 3000;
 
