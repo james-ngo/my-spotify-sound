@@ -142,7 +142,7 @@ app.get('/callback', function(req, res) {
   }
 });
 
-function refreshToken(req, res) {
+app.get('/refresh_token', function (req, res) {
   // requesting access token from refresh token
   var refresh_token = req.cookies.refresh_token;
   var authOptions = {
@@ -158,10 +158,10 @@ function refreshToken(req, res) {
   request.post(authOptions, function(error, response, body) {
     if (!error && response.statusCode === 200) {
       access_token = body.access_token;
-      res.cookies("auth", access_token);
+      res.send({ "access_token": access_token });
     }
   });
-}
+});
 
 const PORT = process.env.PORT || 3000;
 

@@ -101,7 +101,7 @@
               $.ajax({
                 url: '/refresh_token',
                 data: {
-                  'refresh_token': refresh_token
+                  'refresh_token': document.cookie.refresh_token
                 }
               }).done(function(data) {
                 access_token = data.access_token;

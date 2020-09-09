@@ -89,56 +89,56 @@
         }
 
         $.ajax({
-            url: 'https://api.spotify.com/v1/me/top/artists?time_range=' + time_range + '&limit=50',
-            headers: {
-              'Authorization': 'Bearer ' + "<%- token %>"
-            },
-            success: function(response) {
-              var genreCount = {};
-              var html = "";
-              for (var i = 0; i < response.items.length; i++) {
-                for (var j = 0; j < response.items[i].genres.length; j++) {
-                  if (genreCount[response.items[i].genres[j]]) {
-                    genreCount[response.items[i].genres[j]]["count"] += 1;
-                  } else {
-                    genreCount[response.items[i].genres[j]] = { count: 1 };
-                  }
-                  if (genreCount[response.items[i].genres[j]]["count"] < 4) {
-                    genreCount[response.items[i].genres[j]]["image" + genreCount[response.items[i].genres[j]]["count"]] = response.items[i].images[0].url;
-                    genreCount[response.items[i].genres[j]]["id" + genreCount[response.items[i].genres[j]]["count"]] = response.items[i].id;
-                  }
+          url: 'https://api.spotify.com/v1/me/top/artists?time_range=' + time_range + '&limit=50',
+          headers: {
+            'Authorization': 'Bearer ' + "<%- token %>"
+          },
+          success: function(response) {
+            var genreCount = {};
+            var html = "";
+            for (var i = 0; i < response.items.length; i++) {
+              for (var j = 0; j < response.items[i].genres.length; j++) {
+                if (genreCount[response.items[i].genres[j]]) {
+                  genreCount[response.items[i].genres[j]]["count"] += 1;
+                } else {
+                  genreCount[response.items[i].genres[j]] = { count: 1 };
+                }
+                if (genreCount[response.items[i].genres[j]]["count"] < 4) {
+                  genreCount[response.items[i].genres[j]]["image" + genreCount[response.items[i].genres[j]]["count"]] = response.items[i].images[0].url;
+                  genreCount[response.items[i].genres[j]]["id" + genreCount[response.items[i].genres[j]]["count"]] = response.items[i].id;
                 }
               }
-              var sortedGenres = Object.entries(genreCount).sort(function(a, b) {
-                return b[1]["count"] - a[1]["count"];
-              }).slice(0, 10);
-              for (i = 0; i < sortedGenres.length; i++) {
-                html += topGenresTemplate({ genre: sortedGenres[i][0],
-                                            count: sortedGenres[i][1]["count"],
-                                            image1: sortedGenres[i][1]["image1"],
-                                            image2: sortedGenres[i][1]["image2"],
-                                            image3: sortedGenres[i][1]["image3"],
-                                            id1: sortedGenres[i][1]["id1"],
-                                            id2: sortedGenres[i][1]["id2"],
-                                            id3: sortedGenres[i][1]["id3"],
-                                            rank: i + 1 });
-              }
-              topGenresPlaceholder.innerHTML = html;
-            },
-            error: function(response, textStatus) {
-              if (response.status === 401) {
-                $.ajax({
-                  url: '/refresh_token',
-                  data: {
-                    'refresh_token': refresh_token
-                  }
-                }).done(function(data) {
-                  access_token = data.access_token;
-                  document.cookie = "auth=" + access_token;
-                  location.reload();
-                });
-              }
             }
+            var sortedGenres = Object.entries(genreCount).sort(function(a, b) {
+              return b[1]["count"] - a[1]["count"];
+            }).slice(0, 10);
+            for (i = 0; i < sortedGenres.length; i++) {
+              html += topGenresTemplate({ genre: sortedGenres[i][0],
+                                          count: sortedGenres[i][1]["count"],
+                                          image1: sortedGenres[i][1]["image1"],
+                                          image2: sortedGenres[i][1]["image2"],
+                                          image3: sortedGenres[i][1]["image3"],
+                                          id1: sortedGenres[i][1]["id1"],
+                                          id2: sortedGenres[i][1]["id2"],
+                                          id3: sortedGenres[i][1]["id3"],
+                                          rank: i + 1 });
+            }
+            topGenresPlaceholder.innerHTML = html;
+          },
+          error: function(response, textStatus) {
+            if (response.status === 401) {
+              $.ajax({
+                url: '/refresh_token',
+                data: {
+                  'refresh_token': document.cookie.refresh_token
+                }
+              }).done(function(data) {
+                access_token = data.access_token;
+                document.cookie = "auth=" + access_token;
+                location.reload();
+              });
+            }
+          }
         });
       })();
     </script>

@@ -93,32 +93,32 @@
         }
 
         $.ajax({
-            url: 'https://api.spotify.com/v1/me/top/tracks?time_range=' + time_range + '&limit=50',
-            headers: {
-              'Authorization': 'Bearer ' + "<%- token %>"
-            },
-            success: function(response) {
-              var html = "";
-              for (var i = 0; i < response.items.length; i++) {
-                response.items[i].rank = i + 1;
-                html += topTracksTemplate(response.items[i]);
-              }
-              topTracksPlaceholder.innerHTML = html;
-            },
-            error: function(response, textStatus) {
-              if (response.status === 401) {
-                $.ajax({
-                  url: '/refresh_token',
-                  data: {
-                    'refresh_token': refresh_token
-                  }
-                }).done(function(data) {
-                  access_token = data.access_token;
-                  document.cookie = "auth=" + access_token;
-                  location.reload();
-                });
-              }
+          url: 'https://api.spotify.com/v1/me/top/tracks?time_range=' + time_range + '&limit=50',
+          headers: {
+            'Authorization': 'Bearer ' + "<%- token %>"
+          },
+          success: function(response) {
+            var html = "";
+            for (var i = 0; i < response.items.length; i++) {
+              response.items[i].rank = i + 1;
+              html += topTracksTemplate(response.items[i]);
             }
+            topTracksPlaceholder.innerHTML = html;
+          },
+          error: function(response, textStatus) {
+            if (response.status === 401) {
+              $.ajax({
+                url: '/refresh_token',
+                data: {
+                  'refresh_token': document.cookie.refresh_token
+                }
+              }).done(function(data) {
+                access_token = data.access_token;
+                document.cookie = "auth=" + access_token;
+                location.reload();
+              });
+            }
+          }
         });
       })();
     </script>
