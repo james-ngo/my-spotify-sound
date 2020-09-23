@@ -11,6 +11,18 @@
         height:100px;
         object-fit:cover;
       }
+      .loader {
+        border: 8px solid #f3f3f3; /* Light grey */
+        border-top: 8px solid #3498db; /* Blue */
+        border-radius: 50%;
+        width: 60px;
+        height: 60px;
+        animation: spin 2s linear infinite;
+      }
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
     </style>
   </head>
   <body>
@@ -32,10 +44,18 @@
       <a href="/genres?time_range=long_term">
         <h6 style="display:inline-block;margin-left:10em;">All Time</h6>
       </a>
+    <div id="loader">
+      <br>
+      <br>
+      <div class="loader">
+      </div>
+    </div>
     </center>
 
     <div id="top-genres">
     </div>
+
+    <%- include('partials/footer') %>
 
     <script id="top-genres-header-template" type="text/x-handlebars-template">
       <h2>Your Top Genres ({{time_range}})</h2>
@@ -43,7 +63,7 @@
 
     <script id="top-genres-template" type="text/x-handlebars-template">
       <br>
-      <div class="d-flex justify-content-between container" style="border:1px solid #cecece;background-color:#E8E8E8;padding-top:1em;padding-bottom:1em;">
+      <div class="d-flex justify-content-between container rounded" style="border:1px solid #cecece;background-color:#E8E8E8;padding-top:1em;padding-bottom:1em;">
         <div>
           <h2 style="margin-left:1em;display:inline-block;">{{rank}}.&nbsp;{{genre}}</h2>
           <p style="margin-left:2em">{{count}} of your top 50 artists are {{genre}}.</p>
@@ -68,6 +88,8 @@
     <script src="https://code.jquery.com/jquery-1.10.1.min.js"></script>
     <script>
       (function() {
+
+        $('#loader').show();
 
         var topGenresHeaderSource = document.getElementById('top-genres-header-template').innerHTML,
             topGenresHeaderTemplate = Handlebars.compile(topGenresHeaderSource),
@@ -123,6 +145,7 @@
                                           id3: sortedGenres[i][1]["id3"],
                                           rank: i + 1 });
             }
+            $('#loader').hide();
             topGenresPlaceholder.innerHTML = html;
           },
           error: function(response, textStatus) {

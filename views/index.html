@@ -13,17 +13,18 @@
         white-space: nowrap;
         width: 500px;
       }
+      .centered-element {
+        position: absolute;
+        top: 30%;
+        left: 50%;
+        transform: translate(-50%, -30%);
+      }
     </style>
   </head>
 
   <body>
     <%- include('partials/navbar') %>
-    <br>
-    <br>
-    <br>
-    <br>
-    <br>
-    <div class="container">
+    <div class="container-fluid no-padding">
       <div id="home-banner">
       </div>
       <br>
@@ -37,17 +38,25 @@
           <a href="/artists" class="btn btn-success">Top Artists</a>
           <a href="/genres" class="btn btn-success" style="margin-left:2.5em">Top Genres</a>
           <a href="/tracks" class="btn btn-success" style="margin-left:2.5em">Top Tracks</a>
+          <a href="/discover" class="btn btn-success" style="margin-left:2.5em">Discover</a>
         </center>
       </div>
     </div>
 
+    <br>
+    <br>
+    <br>
+
+    <%- include('partials/footer') %>
+
     <script id="home-banner-template" type="text/x-handlebars-template">
       <center>
-        <div class="container" style="background-color:#E8E8E8;">
+        <img src="images/banner.jpg" class="img-fluid" style="object-fit:cover;height:400px;width:1500px;position:relative" alt="Responsive image">
+        <div class="container rounded centered-element" style="background-color:rgba(25, 25, 25, 0.25)">
           <br>
-          <h1 style="font-family:verdana">MySpotifySound</h1>
+          <h1 style="font-family:verdana;font-weight:bold;color:white">MySpotifySound</h1>
           <br>
-          <p>View your top artists and genres and the discover new artists based on them.</p>
+          <p style="color:white;font-size:18px">View your top artists, genres, and tracks and discover new artists based on them.</p>
           <br>
         </div>
       </center>

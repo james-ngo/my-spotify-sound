@@ -1,0 +1,127 @@
+<!doctype html>
+<html>
+  <head>
+    <title>MySpotifySound</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style type="text/css">
+      .artist-image {
+        display:inline-block;
+        width:150px;
+        height:150px;
+        object-fit:cover;
+      }
+      .loader {
+        border: 8px solid #f3f3f3; /* Light grey */
+        border-top: 8px solid #3498db; /* Blue */
+        border-radius: 50%;
+        width: 60px;
+        height: 60px;
+        animation: spin 2s linear infinite;
+      }
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+    </style>
+  </head>
+  <body>
+    <%- include('partials/navbar') %>
+    <br>
+    <br>
+    <br>
+    <center>
+      <br>
+      <div id="discover-header">
+      </div>
+      <br>
+      <a href="/discover?time_range=short_term">
+        <h6 style="display:inline-block;">Last 4 Weeks</h6>
+      </a>
+      <a href="/discover?time_range=medium_term">
+        <h6 style="display:inline-block;margin-left:10em;">Last 6 Months</h6>
+      </a>
+      <a href="/discover?time_range=long_term">
+        <h6 style="display:inline-block;margin-left:10em;">All Time</h6>
+      </a>
+    <div id="loader">
+      <br>
+      <br>
+      <div class="loader">
+      </div>
+    </div>
+    </center>
+
+    <div id="discover">
+    </div>
+
+    <%- include('partials/footer') %>
+
+    <script id="discover-header-template" type="text/x-handlebars-template">
+      <h2>Your Recommended Artists ({{time_range}})</h2>
+    </script>
+
+    <script id="discover-template" type="text/x-handlebars-template">
+      <br>
+      <div class="container rounded" style="border:1px solid #cecece;background-color:#E8E8E8;padding-top:1em;padding-bottom:1em;">
+        <div class="media">
+          <a href="https://open.spotify.com/artist/{{id}}" target="_blank">
+            <img class="media artist-image" src="{{images.url}}"/>
+          </a>
+          <div class="media-body">
+            <h2 style="margin-left:1em;display:inline-block">{{rank}}.&nbsp;</h2>
+            <a href="https://open.spotify.com/artist/{{id}}" target="_blank">
+              <h2 style="display:inline-block;color:black;">{{name}}</h2>
+            </a>
+            <p style="margin-left:2em">Because you like {{common_genres}}.</p>
+          </div>
+        </div>
+      </div>
+      <br>
+    </script>
+
+    <script src="//cdnjs.cloudflare.com/ajax/libs/handlebars.js/2.0.0-alpha.1/handlebars.min.js"></script>
+    <script src="https://code.jquery.com/jquery-1.10.1.min.js"></script>
+    <script>
+      (function() {
+        $('#loader').show();
+
+        var discoverHeaderSource = document.getElementById('discover-header-template').innerHTML,
+            discoverHeaderTemplate = Handlebars.compile(discoverHeaderSource),
+            discoverHeaderPlaceholder = document.getElementById('discover-header');
+
+        var discoverSource = document.getElementById('discover-template').innerHTML,
+            discoverTemplate = Handlebars.compile(discoverSource),
+            discoverPlaceholder = document.getElementById('discover');
+
+        var time_range = "<%- time_range %>";
+
+        if (time_range === "short_term") {
+          discoverHeaderPlaceholder.innerHTML = discoverHeaderTemplate({ time_range: "Last 4 Weeks" });
+        } else if (time_range === "medium_term") {
+          discoverHeaderPlaceholder.innerHTML = discoverHeaderTemplate({ time_range: "Last 6 Months" });
+        } else {
+          time_range = "long_term"
+          discoverHeaderPlaceholder.innerHTML = discoverHeaderTemplate({ time_range: "All Time" });
+        }
+
+        $.ajax({
+          url: '/get_recommended',
+          data: {
+            'refresh_token': document.cookie.refresh_token
+          }
+        }).done(function(data) {
+          artists = data.artists;
+          var html = "";
+          for (var i = 0; i < artists.length; i++) {
+            artists[i].rank = i + 1;
+            artists[i].common_genres = artists[i].common_genres.join(", ")
+            html += discoverTemplate(artists[i]);
+          }
+          $('#loader').hide();
+
+          discoverPlaceholder.innerHTML = html;
+        });
+      })();
+    </script>
+  </body>
+</html>

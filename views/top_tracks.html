@@ -17,6 +17,18 @@
         height:150px;
         object-fit:cover;
       }
+      .loader {
+        border: 8px solid #f3f3f3; /* Light grey */
+        border-top: 8px solid #3498db; /* Blue */
+        border-radius: 50%;
+        width: 60px;
+        height: 60px;
+        animation: spin 2s linear infinite;
+      }
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
     </style>
   </head>
   <body>
@@ -38,10 +50,18 @@
       <a href="/tracks?time_range=long_term">
         <h6 style="display:inline-block;margin-left:10em;">All Time</h6>
       </a>
+    <div id="loader">
+      <br>
+      <br>
+      <div class="loader">
+      </div>
+    </div>
     </center>
 
     <div id="top-tracks">
     </div>
+
+    <%- include('partials/footer') %>
 
     <script id="top-tracks-header-template" type="text/x-handlebars-template">
       <h2>Your Top Tracks ({{time_range}})</h2>
@@ -49,7 +69,7 @@
 
     <script id="top-tracks-template" type="text/x-handlebars-template">
       <br>
-      <div class="container" style="border:1px solid #cecece;background-color:#E8E8E8;padding-top:1em;padding-bottom:1em;">
+      <div class="container rounded" style="border:1px solid #cecece;background-color:#E8E8E8;padding-top:1em;padding-bottom:1em;">
         <div class="media">
           <a href="https://open.spotify.com/track/{{id}}" target="_blank">
             <img class="media track-image" src="{{album.images.0.url}}"/>
@@ -73,6 +93,8 @@
     <script src="https://code.jquery.com/jquery-1.10.1.min.js"></script>
     <script>
       (function() {
+        $('#loader').show();
+
         var topTracksHeaderSource = document.getElementById('top-tracks-header-template').innerHTML,
             topTracksHeaderTemplate = Handlebars.compile(topTracksHeaderSource),
             topTracksHeaderPlaceholder = document.getElementById('top-tracks-header');
@@ -103,6 +125,7 @@
               response.items[i].rank = i + 1;
               html += topTracksTemplate(response.items[i]);
             }
+            $('#loader').hide();
             topTracksPlaceholder.innerHTML = html;
           },
           error: function(response, textStatus) {

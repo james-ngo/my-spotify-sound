@@ -12,7 +12,7 @@ var request = require('request'); // "Request" library
 var cors = require('cors');
 var querystring = require('querystring');
 var cookieParser = require('cookie-parser');
-var url = require('url') ;
+var url = require('url');
 
 var client_id = process.env.CLIENT_ID; // Your client id
 var client_secret = process.env.CLIENT_SECRET; // Your secret
@@ -40,6 +40,9 @@ app.engine('html', require('ejs').renderFile);
 
 app.use(cors())
    .use(cookieParser());
+
+// images folder becomes accessible from the root URL
+app.use(express.static("public"));
 
 app.get('/', function(req, res) {
   res.render(__dirname + '/views/index.html',
@@ -74,10 +77,47 @@ app.get('/tracks', function(req, res) {
   }
 });
 
+app.get('/discover', function(req, res) {
+  if (req.cookies.auth) {
+    res.render(__dirname + '/views/discover.html', { token: req.cookies.auth,
+                                                     time_range: req.query.time_range });
+  } else {
+    res.redirect('/login');
+  }
+});
+
+app.get('/get_recommended', function(req, res) {
+  var refresh_token = req.cookies.refresh_token;
+  var authOptions = {
+    url: 'https://accounts.spotify.com/api/token',
+    headers: { 'Authorization': 'Basic ' + (new Buffer(client_id + ':' + client_secret).toString('base64')) },
+    form: {
+      grant_type: 'refresh_token',
+      refresh_token: refresh_token
+    },
+    json: true
+  };
+
+  request.post(authOptions, function(error, response, body) {
+    if (!error && response.statusCode === 200) {
+      access_token = body.access_token;
+      var spawn = require("child_process").spawn;
+      var pythonProcess = spawn("python3", ["scripts/get_recommended.py", access_token, req.query.time_range]);
+      pythonProcess.stdout.on('data', (data) => {
+        res.send(JSON.parse(data.toString()));
+      });
+      pythonProcess.stderr.on('data', (data) => {
+        console.log(data.toString());
+        res.redirect('/');
+      });
+    }
+  });
+})
+
 app.get('/login', function(req, res) {
 
   var hostname = req.headers.host;
-  var redirect_uri = 'https://' + hostname + '/callback/'; // Your redirect uri
+  var redirect_uri = 'http://' + hostname + '/callback/'; // Your redirect uri
 
   var state = generateRandomString(16);
   res.cookie(stateKey, state);
@@ -106,7 +146,7 @@ app.get('/callback', function(req, res) {
   // after checking the state parameter
 
   var hostname = req.headers.host;
-  var redirect_uri = 'https://' + hostname + '/callback/'; // Your redirect uri
+  var redirect_uri = 'http://' + hostname + '/callback/'; // Your redirect uri
 
   var code = req.query.code || null;
   var state = req.query.state || null;
