@@ -104,7 +104,6 @@ app.get('/get_recommended', function(req, res) {
       var spawn = require("child_process").spawn;
       var pythonProcess = spawn("python3", ["scripts/get_recommended.py", access_token, req.query.time_range]);
       pythonProcess.stdout.on('data', (data) => {
-        console.log(data.toString());
         res.send(JSON.parse(data.toString()));
       });
       pythonProcess.stderr.on('data', (data) => {
